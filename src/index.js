@@ -14,8 +14,8 @@ function checksExistsUserAccount(req, res, next) {
   const { username } = req.headers;
   const user = users.find((user) => user.username === username);
   if (!user) {
-    return res.status(400).json({
-      message: 'User not found'
+    return res.status(404).json({
+      error: 'User not found'
     });
   };
   req.user = user;
@@ -24,50 +24,61 @@ function checksExistsUserAccount(req, res, next) {
 
 app.post('/users', (req, res) => {
   const { name, username } = req.body;
-  const userAlreadyExist = users.some((user) => user.username === username);
-  console.log(userAlreadyExist);
+
+  const userAlreadyExist = users.some(user => user.username === username);
+
   if (userAlreadyExist) {
-    res.status(400).send('User already exists ');
+    res.status(400).send('User already exists');
   } else {
-    users.push({
+    const user = {
       id: uuidv4(),
       name,
       username,
       todos: []
-    });
-  }
-  res.status(201).json({
-    message: 'User created',
-    data: users
-  });
+    };
+    users.push(user);
+    res.status(201).json(user);
+  };
 });
-
-app.get('/users/list', (req, res) => {
-  res.status(200).send(users);
-})
 
 app.get('/todos', checksExistsUserAccount, (req, res) => {
   const { username } = req.headers;
-  return res.json(username.todos);
+
+  const customer = users.find(user => user.username === username);
+
+  return res.json(customer.todos);
 });
 
 app.post('/todos', checksExistsUserAccount, (req, res) => {
+  const { user } = req;
   const { title, deadline } = req.body;
-  const { username } = req;
-
-  const addNewTodo = {
+  const todo = {
     id: uuidv4(),
     title,
     done: false,
     deadline: new Date(deadline),
-    created_at: new Date(),
+    created_at: new Date()
   }
-  username.todos.push(addNewTodo);
-  res.status(201).send('Todo is add');
+  user.todos.push(todo);
+  return res.status(201).send('create a new todo')
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (req, res) => {
-  // Complete here
+  const { user } = req; // Talver colocar headers
+  const { title, deadline } = req.body;
+  const { id } = req.params;
+
+  const indexOfTodo = user.todos.findIndex(todo => todo.id === id); // return a number, if number = -1, item not found
+  if(indexOfTodo < 0) {
+    return res.status(404).send({ message: 'Todo not found' });
+  } 
+
+  const todoUpdate = user.todos[indexOfTodo];
+  title ? todoUpdate.title = title : false;
+  deadline ? todoUpdate.deadline = deadline : false;
+
+  return res.status(204).send('Todo is update');
+
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (req, res) => {
