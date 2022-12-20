@@ -25,28 +25,21 @@ function checksExistsUserAccount(req, res, next) {
 app.post('/users', (req, res) => {
   const { name, username } = req.body;
   const userAlreadyExist = users.some((user) => user.username === username);
-
+  console.log(userAlreadyExist);
   if (userAlreadyExist) {
-    res.status(400).send(`Error - user already exists!`);
-  }
-  else {
-    const userAlreadyExists = users.some((user) => user.username === username);
-    if (userAlreadyExists) {
-      res.status(400).send('User already exists!');
-    }
+    res.status(400).send('User already exists ');
+  } else {
     users.push({
       id: uuidv4(),
       name,
       username,
-      todos: [],
+      todos: []
     });
-    console.log(users);
-    res.status(200).send('Create account!');
   }
-
-  console.log(users);
-  res.status(200).send('Account created!');
-
+  res.status(201).json({
+    message: 'User created',
+    data: users
+  });
 });
 
 app.get('/users/list', (req, res) => {
@@ -54,11 +47,23 @@ app.get('/users/list', (req, res) => {
 })
 
 app.get('/todos', checksExistsUserAccount, (req, res) => {
-  // Complete here
+  const { username } = req.headers;
+  return res.json(username.todos);
 });
 
 app.post('/todos', checksExistsUserAccount, (req, res) => {
-  // Complete here
+  const { title, deadline } = req.body;
+  const { username } = req;
+
+  const addNewTodo = {
+    id: uuidv4(),
+    title,
+    done: false,
+    deadline: new Date(deadline),
+    created_at: new Date(),
+  }
+  username.todos.push(addNewTodo);
+  res.status(201).send('Todo is add');
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (req, res) => {
