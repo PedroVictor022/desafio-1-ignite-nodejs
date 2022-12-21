@@ -69,9 +69,9 @@ app.put('/todos/:id', checksExistsUserAccount, (req, res) => {
   const { id } = req.params;
 
   const indexOfTodo = user.todos.findIndex(todo => todo.id === id); // return a number, if number = -1, item not found
-  if(indexOfTodo < 0) {
+  if (indexOfTodo < 0) {
     return res.status(404).send({ message: 'Todo not found' });
-  } 
+  }
 
   const todoUpdate = user.todos[indexOfTodo];
   title ? todoUpdate.title = title : false;
@@ -82,11 +82,19 @@ app.put('/todos/:id', checksExistsUserAccount, (req, res) => {
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (req, res) => {
-  // Complete here
+  const { user } = req;
+  const { id } = req.params;
+
+  const indexOfTodo = user.todos.findIndex(todo => todo.id === id);
+  if (indexOfTodo < 0) { 
+    return res.status(404).send('Not found todo');
+  }
+  user.todos[indexOfTodo].done = true;
+  return res.status(201).send('Todo is update');
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (req, res) => {
-  // Complete here
+  
 });
 
 module.exports = app;
